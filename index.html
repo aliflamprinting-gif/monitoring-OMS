@@ -1,1 +1,984 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="referrer" content="no-referrer">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Monitoring OMS</title>
+  <style>
+    :root{
+      --bg:#f7f8fa;
+      --card:#ffffff;
+      --text:#18212b;
+      --muted:#7d8792;
+      --primary:#1f4e78;
+      --primary-soft:#eaf1f7;
+      --line:#e8ebef;
+      --green:#16834b;
+      --shadow:0 4px 16px rgba(22,32,43,.055);
+    }
 
+    *{box-sizing:border-box}
+    html{
+      width:100%;
+      min-width:100%;
+      height:100%;
+      font-size:16px;
+      -webkit-text-size-adjust:100%;
+      text-size-adjust:100%;
+      background:var(--bg);
+    }
+    body{
+      margin:0;
+      width:100%;
+      min-width:320px;
+      min-height:100%;
+      overflow-x:hidden;
+      background:var(--bg);
+      color:var(--text);
+      font-family:Arial,Helvetica,sans-serif;
+    }
+    button,input{
+      font:inherit;
+      -webkit-tap-highlight-color:transparent;
+    }
+    button{cursor:pointer}
+
+    .app{
+      width:100%;
+      max-width:480px;
+      min-height:100vh;
+      margin:0 auto;
+      transform:none !important;
+      zoom:1;
+      padding-bottom:88px;
+    }
+
+    /* HEADER */
+    .header{
+      padding:18px 16px 16px;
+      background:var(--card);
+      border-bottom:1px solid var(--line);
+    }
+    .header-row{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+    }
+    .brand{
+      font-size:19px;
+      line-height:23px;
+      font-weight:900;
+      letter-spacing:-.35px;
+    }
+    .date{
+      margin-top:4px;
+      color:var(--muted);
+      font-size:10px;
+      line-height:13px;
+    }
+    .refresh{
+      min-height:38px;
+      padding:0 12px;
+      border:1px solid var(--line);
+      border-radius:11px;
+      background:#fff;
+      color:var(--text);
+      font-size:10px;
+      font-weight:900;
+    }
+
+    /* PAGE */
+    .view{
+      display:none;
+      padding:17px 15px 12px;
+    }
+    .view.active{display:block}
+
+    .page-title{
+      margin:0 0 14px;
+      font-size:20px;
+      line-height:25px;
+      font-weight:900;
+      letter-spacing:-.3px;
+    }
+
+    /* HERO */
+    .hero{
+      padding:18px;
+      border-radius:20px;
+      background:var(--primary);
+      color:#fff;
+      box-shadow:var(--shadow);
+    }
+    .hero-label{
+      font-size:10px;
+      line-height:13px;
+      font-weight:800;
+      opacity:.8;
+      text-transform:uppercase;
+    }
+    .hero-number{
+      margin-top:4px;
+      font-size:40px;
+      line-height:44px;
+      font-weight:900;
+      letter-spacing:-1px;
+    }
+    .hero-caption{
+      margin-top:2px;
+      font-size:10px;
+      line-height:13px;
+      opacity:.82;
+    }
+
+    /* SMALL SUMMARY */
+    .summary-grid{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:9px;
+      margin-top:10px;
+    }
+    .summary-card{
+      padding:14px;
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:16px;
+      box-shadow:var(--shadow);
+    }
+    .summary-label{
+      color:var(--muted);
+      font-size:9px;
+      line-height:12px;
+      font-weight:900;
+      text-transform:uppercase;
+    }
+    .summary-number{
+      margin-top:4px;
+      font-size:25px;
+      line-height:29px;
+      font-weight:900;
+    }
+
+    /* STATUS */
+    .status-section{
+      margin-top:23px;
+    }
+    .section-head{
+      margin:0 1px 9px;
+    }
+    .section-label{
+      color:var(--text);
+      font-size:12px;
+      line-height:15px;
+      font-weight:900;
+      text-transform:uppercase;
+    }
+    .status-list{
+      display:grid;
+      gap:7px;
+    }
+    .status-row{
+      display:flex;
+      align-items:center;
+      min-height:65px;
+      padding:11px 10px;
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:15px;
+      box-shadow:var(--shadow);
+    }
+    .status-icon{
+      flex:0 0 28px;
+      width:28px;
+      height:28px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      border-radius:10px;
+      background:var(--primary-soft);
+      color:var(--primary);
+      font-size:19px;
+      line-height:20px;
+      font-weight:900;
+    }
+    .status-info{
+      min-width:0;
+      flex:1;
+      margin-left:10px;
+    }
+    .status-title{
+      font-size:11px;
+      line-height:15px;
+      font-weight:900;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .status-meta{
+      margin-top:3px;
+      color:var(--muted);
+      font-size:9px;
+      line-height:12px;
+      white-space:nowrap;
+    }
+    .status-meta strong{
+      color:var(--text);
+      font-weight:900;
+    }
+    .status-money{
+      flex:0 0 auto;
+      margin-left:7px;
+      font-size:10px;
+      line-height:14px;
+      font-weight:900;
+      text-align:right;
+    }
+    .status-chevron{
+      flex:0 0 auto;
+      margin-left:7px;
+      color:#a7afb8;
+      font-size:18px;
+      line-height:18px;
+    }
+
+    /* ORDER */
+    .order-grid{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:9px;
+    }
+    .order-card{
+      min-width:0;
+      padding:12px;
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:15px;
+      box-shadow:var(--shadow);
+    }
+    .order-user{
+      font-size:11px;
+      line-height:15px;
+      font-weight:900;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .order-number{
+      margin-top:2px;
+      color:var(--primary);
+      font-size:8px;
+      line-height:11px;
+      font-weight:900;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .order-sku{
+      margin-top:9px;
+      font-size:9px;
+      line-height:13px;
+      font-weight:900;
+      word-break:break-word;
+    }
+    .order-detail{
+      margin-top:5px;
+      color:#59636d;
+      font-size:9px;
+      line-height:13px;
+      word-break:break-word;
+    }
+    .order-tags{
+      display:flex;
+      flex-direction:column;
+      align-items:flex-start;
+      gap:4px;
+      margin-top:9px;
+    }
+    .tag{
+      max-width:100%;
+      padding:4px 7px;
+      border-radius:999px;
+      background:#edf2ff;
+      color:#3730a3;
+      font-size:7px;
+      line-height:10px;
+      font-weight:900;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .tag.production{
+      background:#fff0e6;
+      color:#9a3412;
+    }
+
+    /* SHIPPING */
+    .form-card{
+      padding:16px;
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:18px;
+      box-shadow:var(--shadow);
+    }
+    .field{margin-bottom:12px}
+    .field label{
+      display:block;
+      margin-bottom:5px;
+      color:var(--muted);
+      font-size:9px;
+      line-height:12px;
+      font-weight:900;
+    }
+    .field input{
+      width:100%;
+      height:46px;
+      padding:0 12px;
+      border:1px solid #d8dde4;
+      border-radius:11px;
+      background:#fff;
+      color:var(--text);
+      outline:none;
+      font-size:14px;
+    }
+    .field input:focus{border-color:var(--primary)}
+    .save-btn{
+      width:100%;
+      height:47px;
+      border:0;
+      border-radius:11px;
+      background:var(--primary);
+      color:#fff;
+      font-size:12px;
+      font-weight:900;
+    }
+    .history-title{
+      margin:23px 0 9px;
+      font-size:13px;
+      line-height:17px;
+      font-weight:900;
+    }
+    .shipping-list{display:grid;gap:8px}
+    .shipping-item{
+      padding:12px;
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:15px;
+      box-shadow:var(--shadow);
+    }
+    .shipping-date{
+      color:var(--muted);
+      font-size:8px;
+      line-height:11px;
+    }
+    .shipping-stats{
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:6px;
+      margin-top:8px;
+    }
+    .shipping-stat{
+      padding:9px 4px;
+      background:#f3f5f7;
+      border-radius:10px;
+      text-align:center;
+    }
+    .shipping-stat strong{
+      display:block;
+      font-size:11px;
+      line-height:14px;
+    }
+    .shipping-stat span{
+      display:block;
+      margin-top:2px;
+      color:var(--muted);
+      font-size:7px;
+      line-height:9px;
+      font-weight:900;
+    }
+
+    /* NAV */
+    .bottom-nav {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 30;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      padding: 3px 8px 3px;
+      background: rgba(10, 24, 40, .98);
+      border-top: 1px solid var(--line);
+    }
+    .nav-btn {
+      min-height: 44px;
+      padding: 2px 0;
+      border: 0;
+      background: transparent;
+      color: #8298af;
+      font-size: 9px;
+      line-height: 11px;
+      font-weight: 900;
+    }
+    .nav-btn.active{color:var(--primary)}
+    .nav-icon {
+      display: block;
+      margin-bottom: 1px;
+      font-size: 19px;
+      line-height: 21px;
+    }
+
+    /* STATES */
+    .empty{
+      padding:24px 10px;
+      color:var(--muted);
+      text-align:center;
+      font-size:11px;
+      line-height:16px;
+    }
+    .loading{
+      position:fixed;
+      inset:0;
+      z-index:100;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      background:rgba(255,255,255,.78);
+      color:var(--text);
+      font-size:12px;
+      font-weight:900;
+    }
+    .loading.hide{display:none}
+    .toast{
+      position:fixed;
+      left:50%;
+      bottom:82px;
+      z-index:110;
+      display:none;
+      transform:translateX(-50%);
+      padding:10px 14px;
+      border-radius:10px;
+      background:#17202b;
+      color:#fff;
+      font-size:10px;
+      font-weight:700;
+      white-space:nowrap;
+    }
+
+    /* Apps Script iframe hardening: keep CSS pixels 1:1 with the viewport. */
+    @media(max-width:520px){
+      .app{width:100%; max-width:480px;}
+    }
+
+    @media(max-width:360px){
+      .view{padding-left:12px;padding-right:12px}
+      .header{padding-left:13px;padding-right:13px}
+      .hero{padding:16px}
+      .hero-number{font-size:37px}
+      .status-row{padding:10px 9px}
+      .status-money{font-size:9px}
+      .order-card{padding:10px}
+    }
+    @media(min-width:521px){
+      body{background:#e9edf2}
+    }
+  
+    /* Mobile-first readability override: larger text and touch targets on Android */
+    @media (max-width: 520px) {
+      .app { max-width: none; width: 100%; }
+      .header { padding: 18px 16px; }
+      .view { padding: 20px 14px 18px; }
+      .page-title { font-size: 23px; line-height: 29px; margin-bottom: 16px; }
+      .hero { padding: 22px; }
+      .hero-label, .hero-caption { font-size: 12px; line-height: 16px; }
+      .hero-number { font-size: 48px; line-height: 54px; }
+      .summary-card { padding: 16px; }
+      .summary-label { font-size: 10px; line-height: 14px; }
+      .summary-number { font-size: 30px; line-height: 35px; }
+      .status-section { margin-top: 25px; }
+      .section-label { font-size: 13px; line-height: 18px; }
+      .status-row { min-height: 78px; padding: 13px 11px; }
+      .status-icon { flex-basis: 34px; width: 34px; height: 34px; font-size: 22px; }
+      .status-info { margin-left: 11px; }
+      .status-title { font-size: 12px; line-height: 17px; }
+      .status-meta { font-size: 10px; line-height: 14px; margin-top: 4px; }
+      .status-money { font-size: 11px; line-height: 15px; }
+      .status-chevron { font-size: 21px; }
+      .bottom-nav { padding-top: 9px; }
+      .nav-btn { min-height: 58px; font-size: 10px; line-height: 13px; }
+      .nav-icon { font-size: 24px; line-height: 26px; }
+      .order-card { padding: 13px; }
+      .order-user { font-size: 12px; line-height: 16px; }
+      .order-number { font-size: 10px; line-height: 13px; }
+      .order-sku, .order-detail { font-size: 11px; line-height: 15px; }
+      .tag { font-size: 9px; line-height: 12px; }
+      .field label { font-size: 11px; line-height: 15px; }
+      .field input { height: 50px; font-size: 16px; }
+      .save-btn { height: 52px; font-size: 13px; }
+    }
+
+  
+    /* DARK BLUE THEME — visual-only override */
+    :root {
+      color-scheme: dark;
+      --bg: #081321;
+      --card: #101f32;
+      --text: #e8f1fb;
+      --muted: #91a6bd;
+      --primary: #174a78;
+      --primary-soft: #17334d;
+      --line: #23384f;
+      --green: #42c98a;
+      --shadow: 0 8px 24px rgba(0, 0, 0, .22);
+    }
+    html, body { background: var(--bg); color: var(--text); }
+    .header {
+      background: #0c1a2b;
+      border-bottom-color: var(--line);
+    }
+    .refresh {
+      background: #142840;
+      border-color: #2a4561;
+      color: #e8f1fb;
+    }
+    .hero {
+      background: linear-gradient(135deg, #174a78 0%, #102f50 100%);
+      color: #f4f9ff;
+      box-shadow: 0 10px 26px rgba(0, 0, 0, .25);
+    }
+    .summary-card, .status-row, .order-card, .form-card, .shipping-item {
+      background: var(--card);
+      border-color: var(--line);
+      box-shadow: var(--shadow);
+    }
+    .status-icon {
+      background: #183650;
+      color: #8ecaff;
+    }
+    .status-title, .order-user, .order-sku, .summary-number,
+    .page-title, .section-label, .brand {
+      color: var(--text);
+    }
+    .status-meta, .date, .hero-caption, .summary-label,
+    .order-detail, .shipping-date, .field label {
+      color: var(--muted);
+    }
+    .status-meta strong { color: #e8f1fb; }
+    .status-money { color: #d8eaff; }
+    .status-chevron { color: #7591ad; }
+    .order-number { color: #8ecaff; }
+    .tag { background: #20375d; color: #c4d5ff; }
+    .tag.production { background: #49301e; color: #ffc28a; }
+    .field input {
+      background: #0b1929;
+      border-color: #30465e;
+      color: #edf5ff;
+    }
+    .field input::placeholder { color: #71869d; }
+    .save-btn { background: #1d5b91; color: #fff; }
+    .shipping-stat { background: #172a40; }
+    .shipping-stat strong { color: #e8f1fb; }
+    .bottom-nav {
+      background: rgba(10, 24, 40, .98);
+      border-top-color: var(--line);
+    }
+    .nav-btn { color: #8298af; }
+    .nav-btn.active { color: #8ecaff; }
+    .empty { color: var(--muted); }
+    .loading { background: rgba(8, 19, 33, .86); color: var(--text); }
+    .toast { background: #d9eaff; color: #0b1b2b; }
+    @media (min-width: 521px) {
+      body { background: #050d17; }
+    }
+
+  
+    /* Compact bottom navigation: remove tall footer / visual gap */
+    .app { padding-bottom: 58px; }
+    .bottom-nav { padding: 3px 8px 3px !important; }
+    .nav-btn { min-height: 44px !important; padding: 2px 0 !important; font-size: 9px !important; line-height: 11px !important; }
+    .nav-icon { margin-bottom: 1px !important; font-size: 19px !important; line-height: 21px !important; }
+
+  
+    /* Fill the entire mobile viewport so no white strip remains below the app */
+    html {
+      min-height: 100%;
+      height: 100%;
+      background: #081321 !important;
+      color-scheme: dark;
+    }
+    body {
+      margin: 0 !important;
+      min-height: 100%;
+      height: 100%;
+      background: #081321 !important;
+      overscroll-behavior-y: none;
+    }
+    .app {
+      min-height: 100vh;
+      min-height: 100dvh;
+      padding-bottom: 52px;
+      background: #081321;
+    }
+    .bottom-nav {
+      bottom: 0 !important;
+      padding-bottom: 3px !important;
+      background: #0a1828 !important;
+    }
+    @supports (padding-bottom: env(safe-area-inset-bottom)) {
+      .bottom-nav {
+        padding-bottom: max(3px, env(safe-area-inset-bottom)) !important;
+      }
+    }
+
+
+    .login-overlay{position:fixed;inset:0;z-index:200;display:flex;align-items:center;justify-content:center;padding:22px;background:#081321}
+    .login-overlay.hide{display:none}
+    .login-card{width:100%;max-width:360px;padding:25px;border:1px solid #23384f;border-radius:20px;background:#101f32;box-shadow:0 12px 32px rgba(0,0,0,.3)}
+    .login-brand{font-size:21px;font-weight:900;color:#e8f1fb}
+    .login-sub{margin:8px 0 20px;color:#91a6bd;font-size:13px;line-height:19px}
+    .login-card input{width:100%;height:50px;padding:0 14px;border:1px solid #30465e;border-radius:11px;background:#0b1929;color:#edf5ff;font-size:18px;letter-spacing:3px;outline:none}
+    .login-card button{width:100%;height:49px;margin-top:12px;border:0;border-radius:11px;background:#1d5b91;color:#fff;font-weight:900}
+    .login-error{min-height:18px;margin-top:10px;color:#ff9696;font-size:12px}
+  </style>
+</head>
+
+<body>
+  <div id="loginOverlay" class="login-overlay">
+  <form class="login-card" onsubmit="submitPin(event)">
+    <div class="login-brand">MONITORING OMS</div>
+    <div class="login-sub">Masukkan PIN akses untuk melanjutkan</div>
+    <input id="pinInput" type="password" inputmode="numeric" autocomplete="current-password" maxlength="32" placeholder="PIN akses" required>
+    <button id="loginButton" type="submit">MASUK</button>
+    <div id="loginError" class="login-error"></div>
+  </form>
+</div>
+<div id="loading" class="loading hide">Memuat Monitoring OMS...</div>
+
+  <div class="app">
+
+    <header class="header">
+      <div class="header-row">
+        <div>
+          <div class="brand">MONITORING OMS</div>
+          <div id="lastUpdate" class="date">Memuat...</div>
+        </div>
+        <button class="refresh" onclick="loadData()">↻ Refresh</button>
+      </div>
+    </header>
+
+    <main>
+
+      <section id="home" class="view active">
+        <h1 class="page-title">Beranda</h1>
+
+        <div class="hero">
+          <div class="hero-label">Total Order Aktif</div>
+          <div id="totalOrder" class="hero-number">0</div>
+          <div class="hero-caption">order yang sedang aktif di OMS</div>
+        </div>
+
+        <div class="summary-grid">
+          <div class="summary-card">
+            <div class="summary-label">Project Aktif</div>
+            <div id="totalProject" class="summary-number">0</div>
+          </div>
+          <div class="summary-card">
+            <div class="summary-label">Data Aktif</div>
+            <div id="activeRows" class="summary-number">0</div>
+          </div>
+        </div>
+
+        <div id="dashboard"></div>
+      </section>
+
+      <section id="orders" class="view">
+        <h1 class="page-title">Data Order</h1>
+        <div id="orderGrid" class="order-grid"></div>
+      </section>
+
+      <section id="shipping" class="view">
+        <h1 class="page-title">Laporan Pengiriman</h1>
+
+        <div class="form-card">
+          <div class="field">
+            <label>TANGGAL</label>
+            <input id="shipDate" type="date">
+          </div>
+
+          <div class="field">
+            <label>NGIRIM BERAPA HARI INI?</label>
+            <input id="shipQty" type="number" min="0" inputmode="numeric" placeholder="0">
+          </div>
+
+          <div class="field">
+            <label>NOMINAL</label>
+            <input id="shipNominal" type="number" min="0" inputmode="numeric" placeholder="0">
+          </div>
+
+          <div class="field">
+            <label>ADA YANG TELAT?</label>
+            <input id="shipLate" type="number" min="0" inputmode="numeric" placeholder="0">
+          </div>
+
+          <button class="save-btn" onclick="saveShipping()">SIMPAN LAPORAN</button>
+        </div>
+
+        <div class="history-title">Riwayat Pengiriman</div>
+        <div id="shippingList" class="shipping-list"></div>
+      </section>
+
+    </main>
+  </div>
+
+  <nav class="bottom-nav">
+    <button class="nav-btn active" onclick="showView('home',this)">
+      <span class="nav-icon">⌂</span>BERANDA
+    </button>
+    <button class="nav-btn" onclick="showView('orders',this)">
+      <span class="nav-icon">▦</span>DATA ORDER
+    </button>
+    <button class="nav-btn" onclick="showView('shipping',this)">
+      <span class="nav-icon">⇧</span>PENGIRIMAN
+    </button>
+  </nav>
+
+  <div id="toast" class="toast"></div>
+
+<script>
+
+  const API_URL = 'PASTE_YOUR_CLOUDFLARE_WORKER_URL_HERE';
+  const TOKEN_KEY = 'oms_monitoring_token';
+  let state = {orders:[], dashboard:{}, pengiriman:[]};
+  let apiToken = '';
+  function getSavedToken(){ return sessionStorage.getItem(TOKEN_KEY) || ''; }
+  async function apiRequest(action, params = {}) {
+    if (API_URL.includes('PASTE_YOUR')) throw new Error('URL Cloudflare Worker belum dipasang di index.html.');
+    const payload = new URLSearchParams({action, ...params});
+    // Semua aksi memakai POST agar PIN/token tidak muncul di URL.
+    const response = await fetch(API_URL, {
+      method: 'POST',
+      headers: {'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'},
+      body: payload.toString(),
+      cache: 'no-store',
+      credentials: 'omit'
+    });
+    if (!response.ok) throw new Error('API gagal (' + response.status + ').');
+    const data = await response.json();
+    if (!data.ok) throw new Error(data.error || 'Permintaan gagal.');
+    return data;
+  }
+  function showLogin(message=''){
+    apiToken = '';
+    sessionStorage.removeItem(TOKEN_KEY);
+    document.getElementById('loginOverlay').classList.remove('hide');
+    document.getElementById('loginError').textContent = message;
+    document.getElementById('pinInput').value = '';
+  }
+  async function submitPin(event){
+    event.preventDefault();
+    const btn = document.getElementById('loginButton');
+    const pin = document.getElementById('pinInput').value.trim();
+    const error = document.getElementById('loginError');
+    error.textContent = '';
+    btn.disabled = true; btn.textContent = 'MEMERIKSA...';
+    try {
+      const result = await apiRequest('login', {pin});
+      apiToken = result.token;
+      sessionStorage.setItem(TOKEN_KEY, apiToken);
+      document.getElementById('loginOverlay').classList.add('hide');
+      loadData();
+    } catch(err) {
+      error.textContent = err.message || 'Login gagal.';
+    } finally {
+      btn.disabled = false; btn.textContent = 'MASUK';
+    }
+  }
+
+
+  document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('shipDate').value = new Date().toISOString().slice(0,10);
+    apiToken = getSavedToken();
+    if (apiToken) loadData();
+    else { setLoading(false); showLogin(); }
+  });
+
+  async function loadData(){
+    if (!apiToken) { setLoading(false); showLogin(); return; }
+    setLoading(true);
+    try {
+      state = await apiRequest('getData', {token: apiToken});
+      renderAll();
+      setLoading(false);
+    } catch(err) {
+      setLoading(false);
+      if ((err.message || '').toLowerCase().includes('sesi')) showLogin(err.message);
+      else toast(err.message || 'Gagal memuat data.');
+    }
+  }
+
+  function renderAll(){
+    const d = state.dashboard || {};
+    document.getElementById('totalOrder').textContent = fmt(d.totalOrder || 0);
+    document.getElementById('totalProject').textContent = fmt(d.totalProject || 0);
+    document.getElementById('activeRows').textContent = fmt(d.totalProject || 0);
+    renderStatusGroups(d);
+    renderOrders(state.orders || []);
+    renderShipping(state.pengiriman || []);
+    document.getElementById('lastUpdate').textContent = 'Update: ' + new Date().toLocaleString('id-ID');
+  }
+
+  function renderStatusGroups(d){
+    const root=document.getElementById('dashboard');
+    root.innerHTML='';
+
+    const groups=[
+      {title:'BELUM DI PROSES',items:d.belum || []},
+      {title:'ON PROGRESS',items:d.progress || []},
+      {title:'PRODUKSI',items:d.produksi || []}
+    ];
+
+    groups.forEach(g=>addGroup(root,g.title,g.items));
+  }
+
+  function addGroup(root,title,items){
+    const section=document.createElement('section');
+    section.className='status-section';
+
+    const head=document.createElement('div');
+    head.className='section-head';
+    head.innerHTML='<div class="section-label">'+esc(title)+'</div>';
+
+    const list=document.createElement('div');
+    list.className='status-list';
+
+    if(!items.length){
+      list.innerHTML='<div class="empty">Belum ada data.</div>';
+    }else{
+      items.forEach(x=>{
+        const el=document.createElement('div');
+        el.className='status-row';
+        el.innerHTML=
+          '<div class="status-icon">•</div>'+
+          '<div class="status-info">'+
+            '<div class="status-title">'+esc(x.status)+'</div>'+
+            '<div class="status-meta">'+
+              '<strong>'+fmt(x.order)+'</strong> order · '+
+              '<strong>'+fmt(x.project)+'</strong> project'+
+            '</div>'+
+          '</div>'+
+          '<div class="status-money">'+esc(rupiah(x.nominal))+'</div>'+
+          '<div class="status-chevron">›</div>';
+        list.appendChild(el);
+      });
+    }
+
+    section.appendChild(head);
+    section.appendChild(list);
+    root.appendChild(section);
+  }
+
+  function renderOrders(orders){
+    const root=document.getElementById('orderGrid');
+    root.innerHTML='';
+
+    if(!orders.length){
+      root.innerHTML='<div class="empty" style="grid-column:1/-1">Tidak ada order aktif.</div>';
+      return;
+    }
+
+    orders.forEach(o=>{
+      const el=document.createElement('article');
+      el.className='order-card';
+      el.innerHTML=
+        '<div class="order-top">'+
+          '<div class="order-user">'+esc(o.username || '-')+'</div>'+
+          '<div class="order-number">'+esc(o.noPesanan || '-')+'</div>'+
+        '</div>'+
+        '<div class="order-sku">'+esc(o.sku || '-')+'</div>'+
+        '<div class="order-detail">'+esc(o.rincian || '-')+'</div>'+
+        '<div class="order-tags">'+
+          (o.progress ? '<span class="tag">'+esc(o.progress)+'</span>':'')+
+          (o.produksi ? '<span class="tag production">'+esc(o.produksi)+'</span>':'')+
+        '</div>';
+      root.appendChild(el);
+    });
+  }
+
+  function renderShipping(items){
+    const root=document.getElementById('shippingList');
+    root.innerHTML='';
+
+    if(!items.length){
+      root.innerHTML='<div class="empty">Belum ada laporan pengiriman.</div>';
+      return;
+    }
+
+    items.forEach(x=>{
+      const el=document.createElement('div');
+      el.className='shipping-item';
+      el.innerHTML=
+        '<div class="shipping-date">'+esc(x.id)+'</div>'+
+        '<div class="shipping-stats">'+
+          shippingStatHtml(x.jumlah,'KIRIM')+
+          shippingStatHtml(rupiah(x.nominal),'NOMINAL')+
+          shippingStatHtml(x.terlambat,'TELAT')+
+        '</div>';
+      root.appendChild(el);
+    });
+  }
+
+  function shippingStatHtml(value,label){
+    return '<div class="shipping-stat"><strong>'+esc(String(value))+'</strong><span>'+esc(label)+'</span></div>';
+  }
+
+  async function saveShipping(){
+    if (!apiToken) { showLogin(); return; }
+    const data={
+      tanggal: document.getElementById('shipDate').value,
+      jumlah: document.getElementById('shipQty').value,
+      nominal: document.getElementById('shipNominal').value,
+      terlambat: document.getElementById('shipLate').value,
+      token: apiToken
+    };
+    if ([data.jumlah,data.nominal,data.terlambat].some(v => v === '' || !Number.isFinite(Number(v)) || Number(v) < 0)) {
+      toast('Isi semua angka dengan nilai 0 atau lebih.'); return;
+    }
+    setLoading(true);
+    try {
+      await apiRequest('savePengiriman', data);
+      document.getElementById('shipQty').value='';
+      document.getElementById('shipNominal').value='';
+      document.getElementById('shipLate').value='';
+      toast('Laporan tersimpan.');
+      await loadData();
+    } catch(err) {
+      setLoading(false);
+      if ((err.message || '').toLowerCase().includes('sesi')) showLogin(err.message);
+      else toast(err.message || 'Gagal menyimpan.');
+    }
+  }
+
+  function showView(id,btn){
+    document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    document.querySelectorAll('.nav-btn').forEach(x=>x.classList.remove('active'));
+    btn.classList.add('active');
+    window.scrollTo({top:0,behavior:'smooth'});
+  }
+
+  function statHtml(value,label){
+    return '<div class="stat"><b>'+esc(String(value))+'</b><span>'+esc(label)+'</span></div>';
+  }
+  function fmt(n){return Number(n||0).toLocaleString('id-ID')}
+  function rupiah(n){return 'Rp '+Number(n||0).toLocaleString('id-ID')}
+  function esc(v){
+    return String(v ?? '').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
+  }
+  function setLoading(v){document.getElementById('loading').classList.toggle('hide',!v)}
+  function toast(msg){
+    const el=document.getElementById('toast'); el.textContent=msg; el.style.display='block';
+    setTimeout(()=>el.style.display='none',2200);
+  }
+</script>
+</body>
+</html>
